@@ -7,7 +7,8 @@ public class SnakeLadderGame extends JFrame {
     private JPanel boardPanel;
     private JButton rollButton, resetButton;
     private JLabel diceLabel, playerLabel, diceImageLabel;
-    private int playerPosition = 1;
+    private int[] playerPositions = {1, 1};
+    private int currentPlayer = 0;
     private Random random;
     private Image boardImage;
     private ImageIcon[] diceImages;
@@ -31,7 +32,7 @@ public class SnakeLadderGame extends JFrame {
     }
 
     public SnakeLadderGame() {
-        setTitle("Snake and Ladder Game");
+        setTitle("Snake and Ladder Game - Two Players");
         setSize(600, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -51,7 +52,7 @@ public class SnakeLadderGame extends JFrame {
         rollButton = new JButton("Roll Dice");
         resetButton = new JButton("Reset");
         diceLabel = new JLabel("Dice: 0");
-        playerLabel = new JLabel("Player at: 1");
+        playerLabel = new JLabel("Player 1's turn");
         diceImageLabel = new JLabel(diceImages[0]);
 
         rollButton.addActionListener(e -> rollDice());
@@ -88,7 +89,6 @@ public class SnakeLadderGame extends JFrame {
         }
     }
     
-
     private void drawBoard(Graphics g) {
         int panelWidth = boardPanel.getWidth();
         int panelHeight = boardPanel.getHeight();
@@ -104,16 +104,18 @@ public class SnakeLadderGame extends JFrame {
         int y = (panelHeight - newHeight) / 2;
 
         g.drawImage(boardImage, x, y, newWidth, newHeight, this);
-
+        
         int tileSize = newWidth / 10;
-        int row = 9 - (playerPosition - 1) / 10;
-        int col = ((playerPosition - 1) % 10);
-        if (row % 2 == 0) { 
-            col = 9 - col; 
+        for (int i = 0; i < 2; i++) {
+            int row = 9 - (playerPositions[i] - 1) / 10;
+            int col = ((playerPositions[i] - 1) % 10);
+            if (row % 2 == 0) { 
+                col = 9 - col; 
+            }
+            
+            g.setColor(i == 0 ? Color.BLUE : Color.RED);
+            g.fillOval(x + col * tileSize + 10, y + row * tileSize + 10, tileSize - 20, tileSize - 20);
         }
-
-        g.setColor(Color.BLUE);
-        g.fillOval(x + col * tileSize + 5, y + row * tileSize + 5, tileSize - 10, tileSize - 10);
     }
 
     private void rollDice() {
@@ -121,28 +123,34 @@ public class SnakeLadderGame extends JFrame {
         diceLabel.setText("Dice: " + diceValue);
         diceImageLabel.setIcon(diceImages[diceValue - 1]);
 
-        playerPosition += diceValue;
-        if (playerPosition > 100) {
-            playerPosition -= diceValue;
+        playerPositions[currentPlayer] += diceValue;
+        if (playerPositions[currentPlayer] > 100) {
+            playerPositions[currentPlayer] -= diceValue;
         }
 
-        if (snakesAndLadders[playerPosition] != 0) {
-            playerPosition = snakesAndLadders[playerPosition];
+        if (snakesAndLadders[playerPositions[currentPlayer]] != 0) {
+            playerPositions[currentPlayer] = snakesAndLadders[playerPositions[currentPlayer]];
         }
 
-        playerLabel.setText("Player at: " + playerPosition);
         boardPanel.repaint();
 
-        if (playerPosition == 100) {
-            JOptionPane.showMessageDialog(this, "Congratulations! You won!");
+        if (playerPositions[currentPlayer] == 100) {
+            JOptionPane.showMessageDialog(this, "Player " + (currentPlayer + 1) + " wins!");
+            resetGame();
+            return;
         }
+
+        currentPlayer = (currentPlayer + 1) % 2;
+        playerLabel.setText("Player " + (currentPlayer + 1) + "'s turn");
     }
 
     private void resetGame() {
-        playerPosition = 1;
+        playerPositions[0] = 1;
+        playerPositions[1] = 1;
+        currentPlayer = 0;
         diceLabel.setText("Dice: 0");
         diceImageLabel.setIcon(diceImages[0]);
-        playerLabel.setText("Player at: 1");
+        playerLabel.setText("Player 1's turn");
         boardPanel.repaint();
     }
 
